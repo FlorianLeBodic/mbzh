@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MBZH - Mes commandes{% endblock %}
+
+{% block content %}
+    <h1>Mes commandes </h1>
+    Bienvenue {{ app.user.firstname}} dans vote compte.
+    <hr>
+    C'est dans cet espace que vous allez pouvoir gérer toutes vos commandes.
+    <br>
+    <a href="{{ path('account') }}">Retour</a>
+
+    {% if orders|length == 0 %}
+        <hr>
+        <p class="text-center">
+            Vous n'avez pas encore passé de commandes sur MBZH.
+        </p>
+    {% else %}
+        <table class="table mt-4">
+            <thead>
+            <tr>
+                <th scope="col">Référence</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Passé le </th>
+                <th scope="col">Produits</th>
+                <th scope="col">Total</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for order in orders %}
+                <tr>
+                    <td><span class="badge badge-secondary">{{ order.reference }}</span></td>
+                    <td>
+                        {% if order.state == 1 %}
+                            <span class="badge badge-success">Paiement accepté</span>
+                        {% elseif order.state == 2 %}
+                            <span class="badge badge-success">Préparation en cours</span>
+                        {% elseif order.state == 3 %}
+                            <span class="badge badge-success">Livraison en cours</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.createdAt|date('d/m/Y') }}</td>
+                    <td>{{ order.orderDetails|length }}</td>
+                    <td>{{ ((order.carrierPrice + order.getTotal) / 100)|number_format(2, ',',',') }} €</td>
+                    <td class="text-right"><a href="{{ path('account_order_show', {'reference':order.reference}) }}">Voir ma commande</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% endif %}
+{% endblock %}

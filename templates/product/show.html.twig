@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} - MBZH{% endblock %}
+
+{% block content %}
+   <div class="row">
+      <div class="col-md-5">
+         <img src="/uploads/{{ product.illustration }}" alt="{{ product.name }}" class="img-fluid">
+      </div>
+
+      {# my-auto permet de centrer la partie droite du texte au milieu de la partie gauche de l'image plus grande      #}
+      <div class="col-md-7 my-auto">
+         <h3>{{ product.name }}</h3>
+         <p>{{ product.subtitle }}</p>
+         {# hr permet de faire un séparateur ligne fine        #}
+         <hr>
+         <p>{{ product.description }}</p>
+         <span class="product-page-price">{{ (product.price / 100)|number_format(2, ',', '.') }} €</span>
+         <hr>
+
+            {# TODO path avec Twig #}
+         <a href="{{ path('add_to_cart', {'id' : product.id }) }}" class="btn btn-primary">Ajouter au panier</a>
+      </div>
+   </div>
+   <hr>
+   <h3>Nos meillleurs ventes</h3>
+   <p>Découvrez les articles les plus vendus</p>
+   <div class="row">
+      {% for product in products %}
+         <div class="col-md-3">
+            {% include 'product/single_product.html.twig' %}
+         </div>
+      {% endfor %}
+   </div><!-- /.row -->
+
+{% endblock %}

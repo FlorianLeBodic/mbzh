@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block javascript %}
+<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block title %}Paiement de ma commande - MBZH{% endblock %}
+
+{% block content %}
+    <h2>Mon récapitulatif</h2>
+    <p>Choisissez vos préférences avant de passer votre commande sur MBZH</p>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+           <strong> Mon adresse de livraison</strong><br>
+            <div class="form-check mt-3">
+                {{ delivery|raw }}
+            </div>
+
+            <hr>
+            <strong>Mon transporteur</strong><br>
+            <div class="form-check">
+                {{ carrier.name }}<br>
+                {{ carrier.description }}<br>
+                {{ (carrier.price / 100)|number_format(2, ',', '.') }} €
+
+            </div>
+
+
+        </div>
+        <div class="col-md-6">
+            <div class="text-center">
+                <b>Ma commande</b><br>
+            </div>
+            <div class="order-summary">
+                {% set total = null %}
+                {% for key, product in cart %}
+                    <div class="row {% if key > 0 %} mt-2{% endif %}">
+                        <div class="col-2">
+                            <img src="/uploads/{{ product.product.illustration }}" alt="{{ product.product.name }}" height="75px">
+                        </div>
+                        <div class="col-8 my-auto">
+                            {{ product.product.name }} <br>
+                            <small>
+                                {{ product.product.subtitle }}
+                                <br>
+                                x {{ product.quantity }}
+                            </small>
+                        </div>
+                        <div class="col-2 my-auto">
+                            {{ (product.product.price / 100)|number_format(2, ',', '.') }} €
+                        </div>
+                    </div>
+                    {% set total = total + (product.product.price * product.quantity) %}
+                {% endfor %}
+            </div>
+            <hr>
+            <strong>Sous-total : {{ ((total ) / 100)|number_format(2, ',', '.') }} €</strong><br>
+            <strong>Livraison : {{ (carrier.price / 100)|number_format(2, ',', '.') }} €</strong>
+            <hr>
+            <strong>Total: {{ ((total / 100) + (carrier.price / 100))|number_format(2, ',', '.') }} €</strong>
+            <a href="{{ path('stripe_create_session', { 'reference': reference }) }}" class="btn btn-primary btn-block btn-lg w-100">Payer | {{ ((total / 100) + (carrier.price / 100))|number_format(2, ',', '.') }} €</a>
+        </div>
+    </div>
+{% endblock %}
+
+{%  block script %}
+    <script type="text/javascript">
+        // Create an instance of the Stripe object with your publishable API Key
+        var stripe = Stripe("pk_test_51M0JZCGmxruVsWdObFgKHS6nMnrokp0OtUbMaw1WngA8aho8UJqjSrUf2VqL1IKuk4PUaEXj4nE8twFyeZKkBUma00dQYa2FHR");
+        var checkoutButton = document.getElementById("checkout-button");
+        checkoutButton.addEventListener("click", function() {
+            fetch("/commande/create-session/{{ reference }}", {
+                method: "POST",
+            })
+                .then(function (reponse) {
+                    return response.json();
+            })
+                .then(function (session) {
+                    return stripe.redirectToCheckout({sessionId: session.id})
+                })
+                .then(function (result) {
+                    if(result.error){
+                        alert(result.error.message)
+                    }
+                })
+                .catch(function (error){
+                    console.log("Error", error);
+            });
+        });
+    </script>
+{% endblock %}
